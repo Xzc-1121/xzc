@@ -1,0 +1,88 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              06/17/2022 18:50:51 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\APP\Keil_v5\C51\BIN\C51.EXE src\main.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src) DEBUG OBJECT
+                    -EXTEND PRINT(.\Listings\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <STC12C5A60S2.H>
+   2          #include <delay.h>
+   3          #include <uart.h>
+   4          #include <dht11.h>
+   5          #include <bh1750.h>
+   6          #include <sr505.h>
+   7          #include <esp8266.h>
+   8          
+   9          char Data_All[4][6];   //总数据，包括温度、湿度、光照强度，[0]温度、[1]湿度、[2]光
+             -照强度、[3]人体感应
+  10          
+  11          void SendAllData();    //输出温度_湿度_光照强度，测试用
+  12          
+  13          // 主函数
+  14          void main()
+  15          {
+  16   1        Delay_s(1);       //延时1秒，等待系统稳定
+  17   1        Uart1_Init();     //串口1初始化
+  18   1        BH1750_Init();    //BH1750初始化
+  19   1        ESP8266_Init();   //ESP8266初始化
+  20   1        Delay_s(1);       //延时1秒，等待系统稳定
+  21   1        while(1)
+  22   1        {
+  23   2          while(DHT11_GetTemperatureAndHumidity()) //获取温度和湿度
+  24   2          {
+  25   3            Delay_s(1);
+  26   3          }
+  27   2          BH1750_GetLightIntensity(); //获取光照强度
+  28   2          SR505_GetHumanBodyInduction(); //获取人体感应(是否有人)
+  29   2          ESP8266_SendDataAll(); //ESP8266向云服务器发送总数据，包括温度、湿度、光照强度、
+             -人体感应
+  30   2          Delay_s(1);
+  31   2        }
+  32   1      }
+  33          
+  34          // 输出温度_湿度_光照强度，测试用
+  35          void SendAllData()
+  36          {
+  37   1        Uart1_SendString(Data_All[0]);
+  38   1        Uart1_SendString("_");
+  39   1        Uart1_SendString(Data_All[1]);
+  40   1        Uart1_SendString("_");
+  41   1        Uart1_SendString(Data_All[2]);
+  42   1        Uart1_SendString("_");
+  43   1        Uart1_SendString(Data_All[3]);
+  44   1        Uart1_SendString(" ");
+  45   1      }
+  46          
+  47          // 串口1中断函数
+  48          void Uart1_Interrupt() interrupt 4
+  49          {
+  50   1        if(TI) //发送中断
+  51   1        {
+  52   2          TI = 0;
+C51 COMPILER V9.60.0.0   MAIN                                                              06/17/2022 18:50:51 PAGE 2   
+
+  53   2          //在此写处理程序
+  54   2        }
+  55   1        if(RI) //接收中断
+  56   1        {
+  57   2          RI = 0;
+  58   2          //在此写处理程序
+  59   2        }
+  60   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    134    ----
+   CONSTANT SIZE    =      4    ----
+   XDATA SIZE       =     24    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

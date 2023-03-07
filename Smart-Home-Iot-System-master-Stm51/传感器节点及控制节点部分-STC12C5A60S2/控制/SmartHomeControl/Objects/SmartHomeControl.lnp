@@ -1,0 +1,5 @@
+".\Objects\delay.obj",
+".\Objects\main.obj",
+".\Objects\uart.obj" 
+TO ".\Objects\SmartHomeControl" 
+PRINT(".\Listings\SmartHomeControl.m51") RAMSIZE(256) 

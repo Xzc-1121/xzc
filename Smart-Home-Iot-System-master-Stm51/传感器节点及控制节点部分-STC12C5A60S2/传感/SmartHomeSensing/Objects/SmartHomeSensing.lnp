@@ -1,0 +1,9 @@
+".\Objects\delay.obj",
+".\Objects\main.obj",
+".\Objects\uart.obj",
+".\Objects\dht11.obj",
+".\Objects\esp8266.obj",
+".\Objects\bh1750.obj",
+".\Objects\sr505.obj" 
+TO ".\Objects\SmartHomeSensing" 
+PRINT(".\Listings\SmartHomeSensing.m51") RAMSIZE(256) 

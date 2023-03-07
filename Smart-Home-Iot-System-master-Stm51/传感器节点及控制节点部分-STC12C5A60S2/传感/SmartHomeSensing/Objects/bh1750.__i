@@ -1,0 +1,1 @@
+"src\bh1750.c" LARGE OPTIMIZE (8,SPEED) BROWSE INCDIR(.\src) DEBUG OBJECTEXTEND PRINT(.\Listings\bh1750.lst) TABS (2) OBJECT(.\Objects\bh1750.obj)

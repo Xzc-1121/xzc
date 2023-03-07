@@ -1,0 +1,45 @@
+AT+UART=9600,8,1,0,0					设置波特率为9600
+
+AT+CWMODE=3						设置为STA+AP模式，即可作为客户端，也可作为服务端
+
+AT+CWJAP="WiFi名","WiFi密码"				连接WiFi
+
+AT+CIPSNTPCFG=1,8,"ntp1.aliyun.com"				设置时域和SNTP服务器
+
+AT+MQTTUSERCFG=0,1,"NULL","生成的用户名","生成的密码",0,0,""	配置MQTT用户属性
+如：AT+MQTTUSERCFG=0,1,"NULL","TestDevice&hccedAez2nQ","42C42725EC61999A804B9E2E7789C82D10FF9F8A",0,0,""
+
+AT+MQTTCLIENTID=0,"生成的ClienId"				配置MQTT客户端ID，ClienId中的逗号需转义
+如：AT+MQTTCLIENTID=0,"00001|securemode=3\,signmethod=hmacsha1|"
+
+AT+MQTTCONN=0,"生成的连接域名",1883,1			连接MQTT Broker
+如：AT+MQTTCONN=0,"hccedAez2nQ.iot-as-mqtt.cn-shanghai.aliyuncs.com",1883,1
+
+AT+MQTTPUB=0,"Topic主题","Data数据",1,0			发布Topic(字符串消息)，向阿里云平台发送数据
+如：AT+MQTTPUB=0,"/sys/hccedAez2nQ/TestDevice/thing/event/property/post","{\"method\":\"thing.event.property.post\"\,\"params\":{\"Temperature\":35}}",1,0
+
+AT+MQTTSUB=0,"Topic主题",1				订阅Topic，从阿里云平台获取数据
+如：AT+MQTTSUB=0,"/hccedAez2nQ/${deviceName}/user/test",1
+
+AT+MQTTCLEAN=0						关闭连接, 释放资源
+
+
+本人服务器详细配置步骤：
+AT+CWMODE=3
+AT+CWJAP="xiumu","123456xiumu"
+AT+CIPSNTPCFG=1,8,"ntp1.aliyun.com"
+AT+MQTTUSERCFG=0,1,"NULL","ESP8266&hcceEWkluhL","B5F39634B64513A8E7615621A26F8BC7D571C6B1",0,0,""
+AT+MQTTCLIENTID=0,"02020|securemode=3\,signmethod=hmacsha1|"
+AT+MQTTCONN=0,"hcceEWkluhL.iot-as-mqtt.cn-shanghai.aliyuncs.com",1883,1
+AT+MQTTPUB=0,"/sys/hcceEWkluhL/ESP8266/thing/event/property/post","{\"method\":\"thing.event.property.post\"\,\"params\":{\"Temperature\":35\,\"Humidity\":70\,\"LightIntensity\":1206}}",1,0
+
+
+小组服务器详细配置步骤：
+AT+CWMODE=3
+AT+CWJAP="xiumu","123456xiumu"
+AT+CIPSNTPCFG=1,8,"ntp1.aliyun.com"
+AT+MQTTUSERCFG=0,1,"NULL","ESP8266&hbwva3ZqZy3","E3FE6E3EDE52D12C34FBE4944F2EF3EF2EB1C457",0,0,""
+AT+MQTTCLIENTID=0,"02020|securemode=3\,signmethod=hmacsha1|"
+AT+MQTTCONN=0,"hbwva3ZqZy3.iot-as-mqtt.cn-shanghai.aliyuncs.com",1883,1
+AT+MQTTPUB=0,"/sys/hbwva3ZqZy3/ESP8266/thing/event/property/post","{\"method\":\"thing.event.property.post\"\,\"params\":{\"Temperature\":35\,\"Humidity\":70\,\"LightIntensity\":1206}}",1,0
+

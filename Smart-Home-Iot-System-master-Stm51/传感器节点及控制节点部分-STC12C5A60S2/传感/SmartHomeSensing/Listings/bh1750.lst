@@ -1,0 +1,202 @@
+C51 COMPILER V9.60.0.0   BH1750                                                            06/17/2022 18:50:54 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE BH1750
+OBJECT MODULE PLACED IN .\Objects\bh1750.obj
+COMPILER INVOKED BY: D:\APP\Keil_v5\C51\BIN\C51.EXE src\bh1750.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src) DEBUG OBJE
+                    -CTEXTEND PRINT(.\Listings\bh1750.lst) TABS(2) OBJECT(.\Objects\bh1750.obj)
+
+line level    source
+
+   1          #include <STC12C5A60S2.H>
+   2          #include <delay.h>
+   3          
+   4          // 定义器件在IIC总线中的从地址,根据ALT ADDRESS地址引脚不同修改
+   5          //#define SlaveAddress 0x46 //ALT ADDRESS引脚接地时地址为0x46
+   6          #define SlaveAddress 0xB8 //ALT ADDRESS引脚接电源时地址为0xB8
+   7          
+   8          sbit SCL = P0^1;            //BH1750光照强度传感器的SCL(IIC总线时钟)引脚接单片机的P01�
+             -�
+   9          sbit SDA = P0^2;            //BH1750光照强度传感器的SDA(IIC总线数据)引脚接单片机的P02�
+             -�
+  10          unsigned char BUF[8];       //接收数据缓存区
+  11          extern char Data_All[4][6]; //总数据，包括温度、湿度、光照强度，[0]温度、[1]湿度、[
+             -2]光照强度、[3]人体感应
+  12          
+  13          // 起始信号
+  14          void BH1750_Start()
+  15          {
+  16   1        SDA = 1;                    //拉高数据线
+  17   1        SCL = 1;                    //拉高时钟线
+  18   1        Delay5us();                 //延时
+  19   1        SDA = 0;                    //产生下降沿
+  20   1        Delay5us();                 //延时
+  21   1        SCL = 0;                    //拉低时钟线
+  22   1      }
+  23          
+  24          // 停止信号
+  25          void BH1750_Stop()
+  26          {
+  27   1        SDA = 0;                    //拉低数据线
+  28   1        SCL = 1;                    //拉高时钟线
+  29   1        Delay5us();                 //延时
+  30   1        SDA = 1;                    //产生上升沿
+  31   1        Delay5us();                 //延时
+  32   1      }
+  33          
+  34          // 发送应答信号，入口参数:ack(0:ACK 1:NAK)
+  35          void BH1750_SendACK(bit ack)
+  36          {
+  37   1        SDA = ack;                  //写应答信号
+  38   1        SCL = 1;                    //拉高时钟线
+  39   1        Delay5us();                 //延时
+  40   1        SCL = 0;                    //拉低时钟线
+  41   1        Delay5us();                 //延时
+  42   1      }
+  43          
+  44          // 接收应答信号
+  45          bit BH1750_RecvACK()
+  46          {
+  47   1        SCL = 1;                    //拉高时钟线
+  48   1        Delay5us();                 //延时
+  49   1        CY = SDA;                   //读应答信号
+  50   1        SCL = 0;                    //拉低时钟线
+  51   1        Delay5us();                 //延时
+C51 COMPILER V9.60.0.0   BH1750                                                            06/17/2022 18:50:54 PAGE 2   
+
+  52   1        return CY;
+  53   1      }
+  54          
+  55          // 向IIC总线发送一个字节数据
+  56          void BH1750_SendByte(unsigned char dat)
+  57          {
+  58   1        unsigned char i;
+  59   1        for(i=0; i<8; i++)          //8位计数器
+  60   1        {
+  61   2          dat <<= 1;                //移出数据的最高位
+  62   2          SDA = CY;                 //送数据口
+  63   2          SCL = 1;                  //拉高时钟线
+  64   2          Delay5us();               //延时
+  65   2          SCL = 0;                  //拉低时钟线
+  66   2          Delay5us();               //延时
+  67   2        }
+  68   1        BH1750_RecvACK();
+  69   1      }
+  70          
+  71          // 从IIC总线接收一个字节数据
+  72          unsigned char BH1750_RecvByte()
+  73          {
+  74   1        unsigned char i;
+  75   1        unsigned char dat = 0;
+  76   1        SDA = 1;                    //使能内部上拉,准备读取数据,
+  77   1        for(i=0; i<8; i++)          //8位计数器
+  78   1        {
+  79   2          dat <<= 1;
+  80   2          SCL = 1;                  //拉高时钟线
+  81   2          Delay5us();               //延时
+  82   2          dat |= SDA;               //读数据               
+  83   2          SCL = 0;                  //拉低时钟线
+  84   2          Delay5us();               //延时
+  85   2        }
+  86   1        return dat;
+  87   1      }
+  88          
+  89          void Single_Write_BH1750(unsigned char REG_Address)
+  90          {
+  91   1        BH1750_Start();                  //起始信号
+  92   1        BH1750_SendByte(SlaveAddress);   //发送设备地址+写信号
+  93   1        BH1750_SendByte(REG_Address);    //内部寄存器地址，
+  94   1        //BH1750_SendByte(REG_data);       //内部寄存器数据，
+  95   1        BH1750_Stop();                   //发送停止信号
+  96   1      }
+  97          
+  98          // 单字节读取
+  99          unsigned char Single_Read_BH1750(unsigned char REG_Address)
+ 100          {
+ 101   1        unsigned char REG_data;
+ 102   1        BH1750_Start();                          //起始信号
+ 103   1        BH1750_SendByte(SlaveAddress);           //发送设备地址+写信号
+ 104   1        BH1750_SendByte(REG_Address);            //发送存储单元地址，从0开始  
+ 105   1        BH1750_Start();                          //起始信号
+ 106   1        BH1750_SendByte(SlaveAddress+1);         //发送设备地址+读信号
+ 107   1        REG_data=BH1750_RecvByte();              //读出寄存器数据
+ 108   1        BH1750_SendACK(1);   
+ 109   1        BH1750_Stop();                           //停止信号
+ 110   1        return REG_data; 
+ 111   1      }
+ 112          
+ 113          // 连续读出BH1750内部数据
+C51 COMPILER V9.60.0.0   BH1750                                                            06/17/2022 18:50:54 PAGE 3   
+
+ 114          void Multiple_Read_BH1750()
+ 115          {
+ 116   1        unsigned char i;  
+ 117   1        BH1750_Start();                          //起始信号
+ 118   1        BH1750_SendByte(SlaveAddress+1);         //发送设备地址+读信号
+ 119   1        for(i=0; i<3; i++)                       //连续读取2个地址数据，存储中BUF
+ 120   1        {
+ 121   2          BUF[i] = BH1750_RecvByte();            //BUF[0]存储0x32地址中的数据
+ 122   2          if(i == 3)
+ 123   2          {
+ 124   3            BH1750_SendACK(1);                   //最后一个数据需要回NOACK
+ 125   3          }
+ 126   2          else
+ 127   2          {   
+ 128   3            BH1750_SendACK(0);                   //回应ACK
+ 129   3          }
+ 130   2        }
+ 131   1        BH1750_Stop();                           //停止信号
+ 132   1        Delay5ms();
+ 133   1      }
+ 134          
+ 135          // 初始化BH1750
+ 136          void BH1750_Init()
+ 137          {
+ 138   1        Single_Write_BH1750(0x01);  
+ 139   1      }
+ 140          
+ 141          // 光照强度数据格式化
+ 142          void Conversion(unsigned int temp_data)
+ 143          {  
+ 144   1        Data_All[2][0] = temp_data/10000+0x30;   //万
+ 145   1        temp_data = temp_data%10000;
+ 146   1        Data_All[2][1] = temp_data/1000+0x30;    //千
+ 147   1        temp_data = temp_data%1000;
+ 148   1        Data_All[2][2] = temp_data/100+0x30;     //百
+ 149   1        temp_data = temp_data%100;
+ 150   1        Data_All[2][3] = temp_data/10+0x30;      //十
+ 151   1        temp_data = temp_data%10;
+ 152   1        Data_All[2][4] = temp_data+0x30;         //个
+ 153   1        Data_All[2][5] = '\0';
+ 154   1      }
+ 155          
+ 156          // 获取光照强度数据，并格式化
+ 157          void BH1750_GetLightIntensity()
+ 158          {
+ 159   1        int dis_data;
+ 160   1        float temp;
+ 161   1        Single_Write_BH1750(0x01);         //power on
+ 162   1        Single_Write_BH1750(0x10);         //H - resolution mode
+ 163   1        Delay_ms(200);
+ 164   1        Multiple_Read_BH1750();            //连续读出数据，存储在BUF中
+ 165   1        dis_data = BUF[0];
+ 166   1        dis_data = (dis_data<<8)+BUF[1];   //合成数据，即光照数据
+ 167   1        temp = (float)dis_data/1.2;
+ 168   1        Conversion(temp);                  //计算数据
+ 169   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    516    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      8       8
+C51 COMPILER V9.60.0.0   BH1750                                                            06/17/2022 18:50:54 PAGE 4   
+
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

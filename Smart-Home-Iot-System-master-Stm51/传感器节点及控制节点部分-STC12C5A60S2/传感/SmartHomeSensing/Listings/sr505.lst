@@ -1,0 +1,48 @@
+C51 COMPILER V9.60.0.0   SR505                                                             06/17/2022 18:50:54 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE SR505
+OBJECT MODULE PLACED IN .\Objects\sr505.obj
+COMPILER INVOKED BY: D:\APP\Keil_v5\C51\BIN\C51.EXE src\sr505.c LARGE OPTIMIZE(8,SPEED) BROWSE INCDIR(.\src) DEBUG OBJEC
+                    -TEXTEND PRINT(.\Listings\sr505.lst) TABS(2) OBJECT(.\Objects\sr505.obj)
+
+line level    source
+
+   1          #include <STC12C5A60S2.H>
+   2          #include <delay.h>
+   3          
+   4          sbit HUMAN = P0^3;   //HC-SR505人体红外传感器接单片机的P03口
+   5          extern char Data_All[4][6];   //总数据，包括温度、湿度、光照强度，[0]温度、[1]湿度�
+             -�[2]光照强度、[3]人体感应
+   6          
+   7          /**
+   8            * @brief  获取HC-SR505人体红外传感器的数据，0没人，1有人
+   9            * @param  无
+  10            * @retval 无
+  11            */
+  12          void SR505_GetHumanBodyInduction()
+  13          {
+  14   1        if(HUMAN == 0)            //P03收到低电平，则代表没人
+  15   1        {
+  16   2          Data_All[3][0] = '0';
+  17   2        }
+  18   1        else                      //P03收到高电平，则代表有人
+  19   1        {
+  20   2          Data_All[3][0] = '1';
+  21   2        }
+  22   1        Data_All[3][1] = '\0';
+  23   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     20    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
